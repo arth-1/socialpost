@@ -1,6 +1,6 @@
 "use client"
 
-// Inspired by react-hot-toast library
+// react-hot-toast library ig it workss
 import * as React from "react"
 
 const TOAST_LIMIT = 1
@@ -10,7 +10,7 @@ const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",
   DISMISS_TOAST: "DISMISS_TOAST",
-  REMOVE_TOAST: "REMOVE_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",W
 }
 
 let count = 0
