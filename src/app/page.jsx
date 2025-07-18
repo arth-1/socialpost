@@ -24,6 +24,7 @@ import {
 import { generateSocialMediaPostImage } from "@/ai/flows/generate-social-media-post-image";
 import { improvePromptSuggestion } from "@/ai/flows/improve-prompt-suggestions";
 import { useToast } from "@/hooks/use-toast";
+import TopPrompts from "@/components/TopPrompts";
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
@@ -56,6 +57,7 @@ export default function Home() {
       return;
     }
     setIsImproving(true);
+
     try {
       const result = await improvePromptSuggestion({ prompt });
       setImprovedPrompt(result.improvedPrompt);
@@ -71,6 +73,11 @@ export default function Home() {
       setIsImproving(false);
     }
   }, [prompt, toast]);
+
+  function handleTopPromptSelect(prompt, imagePath) {
+    // Optionally, you can set the prompt in your state or handle imagePath
+    // For now, this is a placeholder for integration with your main logic
+  }
 
   const handleGenerate = useCallback(
     async (promptToUse) => {
@@ -295,6 +302,74 @@ export default function Home() {
                 <Button
                   disabled={!generatedImage || isLoading}
                   className="w-full bg-accent hover:bg-accent/90"
+                  onClick={async () => {
+                    if (!generatedImage) return;
+                    // Compress image to under 1MB
+                    async function compressImage(dataUri, maxSizeKB = 1000) {
+                      return new Promise((resolve) => {
+                        const img = new window.Image();
+                        img.onload = function () {
+                          const canvas = document.createElement('canvas');
+                          const maxDim = 1024;
+                          let width = img.width;
+                          let height = img.height;
+                          if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                              height = Math.round((height * maxDim) / width);
+                              width = maxDim;
+                            } else {
+                              width = Math.round((width * maxDim) / height);
+                              height = maxDim;
+                            }
+                          }
+                          canvas.width = width;
+                          canvas.height = height;
+                          const ctx = canvas.getContext('2d');
+                          ctx.drawImage(img, 0, 0, width, height);
+                          let quality = 0.9;
+                          let compressedDataUri = canvas.toDataURL('image/jpeg', quality);
+                          while (
+                            compressedDataUri.length / 1024 > maxSizeKB && quality > 0.1
+                          ) {
+                            quality -= 0.1;
+                            compressedDataUri = canvas.toDataURL('image/jpeg', quality);
+                          }
+                          resolve(compressedDataUri);
+                        };
+                        img.src = dataUri;
+                      });
+                    }
+                    const compressedImage = await compressImage(generatedImage, 1000);
+                    try {
+                      const response = await fetch('/api/postToInstagram', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          imageUrl: compressedImage,
+                          caption: prompt,
+                        }),
+                      });
+                      const data = await response.json();
+                      if (data.success) {
+                        toast({
+                          title: 'Posted to Instagram!',
+                          description: `Media ID: ${data.mediaId}`,
+                        });
+                      } else {
+                        toast({
+                          title: 'Instagram Post Failed',
+                          description: data.error || 'Unknown error',
+                          variant: 'destructive',
+                        });
+                      }
+                    } catch (err) {
+                      toast({
+                        title: 'Instagram Post Error',
+                        description: err.message,
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
                 >
                   <Share2 className="mr-2 h-4 w-4" />
                   Post to Instagram
