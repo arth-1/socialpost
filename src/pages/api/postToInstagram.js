@@ -6,9 +6,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { imageUrl, caption } = req.body;
-  const username = process.env.IG_USERNAME;
-  const password = process.env.IG_PASSWORD;
+  const { imageUrl, caption, instaUser, instaPass } = req.body;
+  const username = instaUser && instaUser.trim() ? instaUser : process.env.IG_USERNAME;
+  const password = instaPass && instaPass.trim() ? instaPass : process.env.IG_PASSWORD;
 
   if (!imageUrl || !caption) {
     return res.status(400).json({ error: 'Missing image or caption' });

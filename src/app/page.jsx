@@ -33,6 +33,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
   const [history, setHistory] = useState([]);
+  const [instaUser, setInstaUser] = useState("");
+  const [instaPass, setInstaPass] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -141,13 +143,38 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background w-full text-foreground">
       <main className="container mx-auto p-4 md:p-8">
-        <header className="text-center mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-primary font-headline">
-            PostCraft AI
-          </h1>
-          <p className="text-muted-foreground mt-2 md:text-lg">
-            Turn your ideas into stunning social media posts in seconds.
-          </p>
+        <header className="flex flex-col md:flex-row items-center justify-between mb-8 md:mb-12">
+          <div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-primary font-headline">
+              PostCraft AI
+            </h1>
+            <p className="text-muted-foreground mt-2 md:text-lg">
+              Turn your ideas into stunning social media posts in seconds.
+            </p>
+          </div>
+          <form
+            className="flex flex-col gap-2 items-end mt-4 md:mt-0 w-full max-w-xs"
+            onSubmit={e => { e.preventDefault(); }}
+          >
+            <input
+              type="text"
+              placeholder="Instagram Username (optional)"
+              className="border border-primary/30 rounded-md px-3 py-2 text-sm bg-background text-foreground w-full focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
+              value={instaUser}
+              onChange={e => setInstaUser(e.target.value)}
+              maxLength={32}
+              style={{ minWidth: 0, width: '100%' }}
+            />
+            <input
+              type="password"
+              placeholder="Instagram Password (optional)"
+              className="border border-primary/30 rounded-md px-3 py-2 text-sm bg-background text-foreground w-full focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
+              value={instaPass}
+              onChange={e => setInstaPass(e.target.value)}
+              maxLength={32}
+              style={{ minWidth: 0, width: '100%' }}
+            />
+          </form>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -223,17 +250,19 @@ export default function Home() {
                 <CardDescription>Click a previous prompt to reuse it.</CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-40">
+                <ScrollArea className="h-40 w-full">
                   {history.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2 w-full">
                       {history.map((histPrompt, index) => (
                         <Badge
                           key={index}
                           variant="secondary"
-                          className="cursor-pointer hover:bg-primary/20 p-2 text-sm"
+                          className="cursor-pointer bg-background border border-muted hover:bg-primary/10 flex items-center justify-start h-12 w-full text-base font-medium px-4 py-2 rounded-md"
+                          style={{ borderRadius: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', minHeight: '3rem', maxWidth: '100%' }}
                           onClick={() => handleHistoryClick(histPrompt)}
+                          title={histPrompt}
                         >
-                          {histPrompt}
+                          {histPrompt.length > 60 ? histPrompt.slice(0, 57) + '...' : histPrompt}
                         </Badge>
                       ))}
                     </div>
@@ -304,7 +333,6 @@ export default function Home() {
                   className="w-full bg-accent hover:bg-accent/90"
                   onClick={async () => {
                     if (!generatedImage) return;
-                    // Compress image to under 1MB
                     async function compressImage(dataUri, maxSizeKB = 1000) {
                       return new Promise((resolve) => {
                         const img = new window.Image();
@@ -347,6 +375,8 @@ export default function Home() {
                         body: JSON.stringify({
                           imageUrl: compressedImage,
                           caption: prompt,
+                          instaUser,
+                          instaPass,
                         }),
                       });
                       const data = await response.json();
