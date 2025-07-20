@@ -24,7 +24,8 @@ import {
 import { generateSocialMediaPostImage } from "@/ai/flows/generate-social-media-post-image";
 import { improvePromptSuggestion } from "@/ai/flows/improve-prompt-suggestions";
 import { useToast } from "@/hooks/use-toast";
-import TopPrompts from "@/components/TopPrompts";
+import TopPrompts, { TOP_PROMPTS, PROMPT_IMAGE_MAP } from "@/components/TopPrompts";
+import PromptHistory from "@/components/PromptHistory";
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
@@ -77,8 +78,22 @@ export default function Home() {
   }, [prompt, toast]);
 
   function handleTopPromptSelect(prompt, imagePath) {
-    // Optionally, you can set the prompt in your state or handle imagePath
-    // For now, this is a placeholder for integration with your main logic
+    setPrompt(prompt);
+    setImprovedPrompt("");
+    setIsLoading(true);
+    setGeneratedImage(null);
+    
+    // Simulate loading for a better UX
+    setTimeout(() => {
+      setGeneratedImage(imagePath);
+      setIsLoading(false);
+      
+      if (!history.includes(prompt)) {
+        const newHistory = [prompt, ...history].slice(0, 10);
+        setHistory(newHistory);
+        localStorage.setItem("promptHistory", JSON.stringify(newHistory));
+      }
+    }, 1200);
   }
 
   const handleGenerate = useCallback(
@@ -93,6 +108,25 @@ export default function Home() {
       }
       setIsLoading(true);
       setGeneratedImage(null);
+      
+      // Check if it's a top prompt first
+      if (TOP_PROMPTS.includes(promptToUse)) {
+        const imagePath = PROMPT_IMAGE_MAP[promptToUse];
+        // Simulate loading for a better UX
+        setTimeout(() => {
+          setGeneratedImage(imagePath);
+          setIsLoading(false);
+          
+          if (!history.includes(promptToUse)) {
+            const newHistory = [promptToUse, ...history].slice(0, 10);
+            setHistory(newHistory);
+            localStorage.setItem("promptHistory", JSON.stringify(newHistory));
+          }
+        }, 1200);
+        return;
+      }
+      
+      // Otherwise proceed with API call
       try {
         const result = await generateSocialMediaPostImage({
           prompt: promptToUse,
@@ -228,6 +262,11 @@ export default function Home() {
                     </CardContent>
                   </Card>
                 )}
+                
+                {/* Top Prompts Section */}
+                <div className="mt-6 border-t pt-6 border-border">
+                  <TopPrompts onPromptSelect={handleTopPromptSelect} />
+                </div>
               </CardContent>
               <CardFooter>
                 <Button
@@ -244,36 +283,10 @@ export default function Home() {
               </CardFooter>
             </Card>
 
-            <Card className="shadow-lg border-2 border-transparent hover:border-primary/20 transition-all duration-300">
-              <CardHeader>
-                <CardTitle>Prompt History</CardTitle>
-                <CardDescription>Click a previous prompt to reuse it.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-40 w-full">
-                  {history.length > 0 ? (
-                    <div className="flex flex-col gap-2 w-full">
-                      {history.map((histPrompt, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="cursor-pointer bg-background border border-muted hover:bg-primary/10 flex items-center justify-start h-12 w-full text-base font-medium px-4 py-2 rounded-md"
-                          style={{ borderRadius: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', minHeight: '3rem', maxWidth: '100%' }}
-                          onClick={() => handleHistoryClick(histPrompt)}
-                          title={histPrompt}
-                        >
-                          {histPrompt.length > 60 ? histPrompt.slice(0, 57) + '...' : histPrompt}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No history yet. Generate an image to start!
-                    </p>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            <PromptHistory 
+              history={history}
+              onPromptClick={handleHistoryClick}
+            />
           </div>
 
           <div className="lg:col-span-3 flex flex-col gap-4">

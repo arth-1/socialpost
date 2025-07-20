@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
-const TOP_PROMPTS = [
+export const TOP_PROMPTS = [
   'A futuristic city skyline at sunset',
   'A cat astronaut floating in space',
   'A serene mountain landscape with a lake',
@@ -8,50 +11,56 @@ const TOP_PROMPTS = [
   'A vintage car driving through the desert',
 ];
 
-const PROMPT_IMAGE_MAP = {
-  'A futuristic city skyline at sunset': '',
-  'A cat astronaut floating in space': '',
-  'A serene mountain landscape with a lake': '',
-  'A vibrant street market in Tokyo': '',
-  'A vintage car driving through the desert': '',
+export const PROMPT_IMAGE_MAP = {
+  'A futuristic city skyline at sunset': '/top_gen/img1.png',
+  'A cat astronaut floating in space': '/top_gen/img2.png',
+  'A serene mountain landscape with a lake': '/top_gen/img3.png',
+  'A vibrant street market in Tokyo': '/top_gen/img4.png',
+  'A vintage car driving through the desert': '/top_gen/img5.png',
 };
 
-export default function TopPrompts({ onPromptSelect }) {
+function TopPrompts({ onPromptSelect }) {
   const [selectedPrompt, setSelectedPrompt] = useState('');
-  const [imagePath, setImagePath] = useState('');
 
   const handlePromptClick = (prompt) => {
     setSelectedPrompt(prompt);
     const path = PROMPT_IMAGE_MAP[prompt];
-    if (path) {
-      setImagePath(path);
-      if (onPromptSelect) onPromptSelect(prompt, path);
-    } else {
-      setImagePath('');
-      if (onPromptSelect) onPromptSelect(prompt, null);
-    }
+    if (onPromptSelect) onPromptSelect(prompt, path);
   };
 
   return (
-    <div className="my-6">
-      <h2 className="text-lg font-bold mb-2">Example Prompts</h2>
-      <ul className="space-y-2">
+    <div>
+      <h2 className="text-lg font-bold mb-3">Example Prompts</h2>
+      <div className="grid grid-cols-1 gap-2">
         {TOP_PROMPTS.map((prompt) => (
-          <li key={prompt}>
-            <button
-              className={`w-full text-left px-4 py-2 rounded border border-primary hover:bg-primary hover:text-primary-foreground transition ${selectedPrompt === prompt ? 'bg-primary text-primary-foreground' : ''}`}
-              onClick={() => handlePromptClick(prompt)}
-            >
-              {prompt}
-            </button>
-          </li>
+          <Badge
+            key={prompt}
+            variant="secondary"
+            className={`cursor-pointer bg-background border hover:bg-primary/10 flex items-center justify-start h-12 w-full text-base font-medium px-4 py-2 rounded-md ${
+              selectedPrompt === prompt ? 'border-primary bg-primary/5' : 'border-muted'
+            }`}
+            style={{ 
+              borderRadius: '6px', 
+              whiteSpace: 'nowrap', 
+              overflow: 'hidden', 
+              textOverflow: 'ellipsis', 
+              textAlign: 'left', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'flex-start', 
+              minHeight: '3rem', 
+              maxWidth: '100%' 
+            }}
+            onClick={() => handlePromptClick(prompt)}
+            title={prompt}
+          >
+            {prompt}
+          </Badge>
         ))}
-      </ul>
-      {imagePath && (
-        <div className="mt-4">
-          <img src={imagePath} alt="Generated" className="rounded shadow max-w-full h-auto" />
-        </div>
-      )}
+      </div>
     </div>
   );
 }
+
+export default TopPrompts;
+
