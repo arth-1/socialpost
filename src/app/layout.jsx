@@ -19,11 +19,11 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-sans antialiased backdrop-blur-3xl" style={{backgroundColor: '#444444', backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(0, 0, 0, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.2) 0%, transparent 50%)'}}>
         {children}
         <Toaster />
       </body>
